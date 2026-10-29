@@ -49,7 +49,7 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--az);border-color
 .foto .tp{position:absolute;top:6px;left:6px;font-size:11px;font-weight:700;padding:2px 7px;border-radius:12px;background:#000a;color:#fff}
 .foto input{border:0;border-top:1px solid var(--bd);border-radius:0;font-size:13px;padding:7px}
 .foto .x{position:absolute;top:6px;right:6px;width:30px;height:30px}
-.muted{color:var(--mu);font-size:14px}.center{text-align:center}
+.muted{color:var(--mu);font-size:14px}.hint{font-size:13px;margin-top:4px;font-weight:600}.center{text-align:center}
 .sig{width:100%;height:200px;border:2px dashed var(--bd);border-radius:10px;background:#fff;touch-action:none;display:block}
 .toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:#1b2430;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:20;max-width:90%;text-align:center}
 .aviso{background:#fff4e0;border:1px solid #f3d29a;color:#7a4a00;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
@@ -96,6 +96,29 @@ const soDig = s => (s || '').replace(/\D/g, '');
 const foneWA = s => { let d = soDig(s); if (d.length === 10 || d.length === 11) d = '55' + d; return d; };
 const slug = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
 const statusInfo = v => STATUS.find(s => s.v === v);
+/* CNPJ: aceita só números ou o formato alfanumérico; formata como 00.000.000/0000-00 */
+const limpaCNPJ = s => (s || '').toUpperCase().replace(/[^0-9A-Z]/g, '').slice(0, 14);
+function fmtCNPJ(s) {
+  const d = limpaCNPJ(s); if (!d) return '';
+  return d.replace(/^(.{2})(.{0,3})(.{0,3})(.{0,4})(.{0,2}).*$/, (m, a, b, c, e, f) =>
+    a + (b ? '.' + b : '') + (c ? '.' + c : '') + (e ? '/' + e : '') + (f ? '-' + f : ''));
+}
+function cnpjValido(s) {
+  const d = limpaCNPJ(s);
+  if (!/^[0-9A-Z]{12}[0-9]{2}$/.test(d) || /^(.)\1{13}$/.test(d)) return false;
+  const v = ch => ch.charCodeAt(0) - 48;
+  const dv = n => { let soma = 0, p = n - 7; for (let i = 0; i < n; i++) { soma += v(d[i]) * p--; if (p < 2) p = 9; } const r = soma % 11; return r < 2 ? 0 : 11 - r; };
+  return dv(12) === +d[12] && dv(13) === +d[13];
+}
+// Formata enquanto digita (fase de captura: roda antes do salvamento automático)
+document.addEventListener('input', e => {
+  const el = e.target; if (!el.classList || !el.classList.contains('cnpj')) return;
+  el.value = fmtCNPJ(el.value);
+  let h = el.nextElementSibling; if (!h || !h.classList.contains('hint')) { h = document.createElement('div'); h.className = 'hint'; el.after(h); }
+  const n = limpaCNPJ(el.value).length;
+  h.textContent = n === 14 ? (cnpjValido(el.value) ? '✓ CNPJ válido' : '⚠ CNPJ inválido – confira os dígitos') : '';
+  h.style.color = cnpjValido(el.value) ? 'var(--ok)' : 'var(--er)';
+}, true);
 function toast(msg, ms = 2600) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), ms); }
 
 /* ================== IndexedDB ================== */
@@ -487,7 +510,7 @@ function gerarPDF(v, c, cfg) {
   if (cfg.logo) { try { const p = d.getImageProperties(cfg.logo); const h = 18, w = Math.min(45, p.width * h / p.height); d.addImage(cfg.logo, 'PNG', M, y, w, h, 'logo', 'FAST'); xTxt = M + w + 4; } catch {} }
   font(13, 'bold'); d.text(cfg.empresa || 'Relatório técnico', xTxt, y + 5);
   font(8.5, 'normal', CINZA);
-  const linhasEmp = [cfg.cnpj && 'CNPJ ' + cfg.cnpj, [cfg.telefone, cfg.email].filter(Boolean).join(' · '), cfg.tecnico && 'Técnico: ' + cfg.tecnico].filter(Boolean);
+  const linhasEmp = [cfg.cnpj && 'CNPJ ' + fmtCNPJ(cfg.cnpj), [cfg.telefone, cfg.email].filter(Boolean).join(' · '), cfg.tecnico && 'Técnico: ' + cfg.tecnico].filter(Boolean);
   linhasEmp.forEach((l, i) => d.text(l, xTxt, y + 10 + i * 3.8));
   font(10, 'bold', AZ); d.text('RELATÓRIO DE VISITA TÉCNICA', W - M, y + 5, {align: 'right'});
   font(16, 'bold', AZ); d.text('Nº ' + pad(v.numero), W - M, y + 12, {align: 'right'});
@@ -512,7 +535,7 @@ function gerarPDF(v, c, cfg) {
   };
 
   secao('Cliente');
-  kv([['Cliente', c.nome], ['CNPJ', c.cnpj], ['Endereço', [c.endereco, c.cidade].filter(Boolean).join(' – ')], ['Contato', [c.contato, c.whatsapp].filter(Boolean).join(' · ')]]);
+  kv([['Cliente', c.nome], ['CNPJ', fmtCNPJ(c.cnpj)], ['Endereço', [c.endereco, c.cidade].filter(Boolean).join(' – ')], ['Contato', [c.contato, c.whatsapp].filter(Boolean).join(' · ')]]);
 
   secao('Atendimento');
   kv([['Origem', v.origem], ['Chamado / solicitante', v.referencia], ['Chegada', fmtDT(v.checkin.ts)], ['Saída', fmtDT(v.checkout?.ts)], ['Tempo no local', dur(v.checkin.ts, v.checkout?.ts)], ['Técnico', cfg.tecnico]]);
@@ -610,7 +633,7 @@ async function vCliente(id) {
   const hist = novo ? [] : (await DB.all('visitas')).filter(v => v.clienteId === c.id).sort((a, b) => b.checkin.ts - a.checkin.ts);
   app.innerHTML = `<div class="card"><h2>Dados</h2>
     <label>Nome do posto / razão social *</label><input data-c="nome" value="${esc(c.nome)}">
-    <label>CNPJ</label><input data-c="cnpj" value="${esc(c.cnpj)}" inputmode="numeric">
+    <label>CNPJ</label><input data-c="cnpj" class="cnpj" value="${esc(fmtCNPJ(c.cnpj))}" inputmode="numeric" placeholder="Só os números">
     <label>Endereço</label><input data-c="endereco" value="${esc(c.endereco)}">
     <label>Cidade / UF</label><input data-c="cidade" value="${esc(c.cidade)}">
     <label>Contato (responsável)</label><input data-c="contato" value="${esc(c.contato)}">
@@ -647,7 +670,7 @@ async function vConfig() {
   const cfg = await getCfg();
   app.innerHTML = `<div class="card"><h2>Sua empresa (cabeçalho do relatório)</h2>
     <label>Nome da empresa</label><input data-k="empresa" value="${esc(cfg.empresa)}">
-    <label>CNPJ</label><input data-k="cnpj" value="${esc(cfg.cnpj)}">
+    <label>CNPJ</label><input data-k="cnpj" class="cnpj" value="${esc(fmtCNPJ(cfg.cnpj))}" inputmode="numeric" placeholder="Só os números">
     <label>Técnico responsável</label><input data-k="tecnico" value="${esc(cfg.tecnico)}">
     <label>Telefone</label><input data-k="telefone" value="${esc(cfg.telefone)}" inputmode="tel">
     <label>E-mail</label><input data-k="email" value="${esc(cfg.email)}" inputmode="email">
@@ -666,7 +689,7 @@ async function vConfig() {
     <button class="btn full" id="exportar">⬇ Exportar backup</button>
     <button class="btn sec full" id="importarBtn">⬆ Restaurar backup</button><input type="file" id="importar" accept=".json,application/json" hidden>
   </div>
-  <p class="muted center" style="font-size:12px">B3 Visitas v1.0.0</p>`;
+  <p class="muted center" style="font-size:12px">B3 Visitas v1.0.1</p>`;
   const salvar = () => saveCfg(cfg);
   app.oninput = (e => { const k = e.target.dataset.k; if (!k) return; cfg[k] = k === 'proxOS' ? Math.max(1, parseInt(e.target.value) || 1) : e.target.value; agendarSalvar(salvar); });
   $('#logo').onchange = async e => { const f = e.target.files[0]; if (!f) return; cfg.logo = await processarLogo(f); await salvar(); vConfig(); };
