@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#164e8c">
+<title>B3 Visitas</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{--az:#164e8c;--az2:#e8f0fa;--tx:#1b2430;--mu:#667085;--bd:#d6dde6;--ok:#16794a;--wa:#b26b00;--er:#b42318;--bg:#f4f6f9}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+header{position:sticky;top:0;z-index:5;background:var(--az);color:#fff;display:flex;align-items:center;gap:8px;padding:12px 14px;min-height:54px}
+header h1{font-size:18px;margin:0;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+header button{background:none;border:0;color:#fff;font-size:22px;padding:4px 8px}
+#salvo{font-size:12px;opacity:.85}
+main{padding:12px 12px 140px;max-width:760px;margin:0 auto}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--bd);display:flex;z-index:5;padding-bottom:env(safe-area-inset-bottom)}
+nav a{flex:1;text-align:center;padding:10px 0 12px;color:var(--mu);text-decoration:none;font-size:13px}
+nav a b{display:block;font-size:20px;font-weight:normal}
+nav a.on{color:var(--az);font-weight:600}
+.card{background:#fff;border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+.card h2{font-size:15px;margin:0 0 10px;color:var(--az);text-transform:uppercase;letter-spacing:.3px}
+.item{display:block;background:#fff;border:1px solid var(--bd);border-radius:12px;padding:12px 14px;margin-bottom:8px;color:inherit;text-decoration:none}
+.item .t{font-weight:600}.item .s{color:var(--mu);font-size:14px}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}
+label{display:block;font-size:13px;color:var(--mu);margin:10px 0 4px;font-weight:600}
+input,select,textarea{width:100%;font:inherit;padding:10px 11px;border:1px solid var(--bd);border-radius:9px;background:#fff;color:var(--tx)}
+textarea{min-height:84px;resize:vertical}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--az);border-color:transparent}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;font:inherit;font-weight:600;border:0;border-radius:10px;padding:12px 16px;background:var(--az);color:#fff;cursor:pointer;text-decoration:none}
+.btn.sec{background:var(--az2);color:var(--az)}.btn.ok{background:var(--ok)}.btn.er{background:#fde8e6;color:var(--er)}.btn.wa{background:#1fa855}
+.btn.full{width:100%;margin-top:10px}.btn.sm{padding:8px 12px;font-size:14px}
+.bar{position:fixed;left:0;right:0;bottom:62px;padding:10px 12px;background:linear-gradient(transparent,var(--bg) 30%);z-index:4}
+.bar .in{max-width:760px;margin:0 auto;display:flex;gap:8px}.bar .btn{flex:1}
+.badge{display:inline-block;font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--az2);color:var(--az)}
+.badge.ab{background:#fff4e0;color:var(--wa)}.badge.fi{background:#e5f5ec;color:var(--ok)}.badge.en{background:#e5f5ec;color:var(--ok)}
+.chk{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:1px solid #eef1f5}
+.chk input{width:22px;height:22px;flex:none;margin-top:1px}
+.radio{display:flex;gap:10px;align-items:center;padding:9px 10px;border:1px solid var(--bd);border-radius:9px;margin-bottom:6px}
+.radio input{width:20px;height:20px;flex:none}
+.mat{display:grid;grid-template-columns:1fr 64px 62px 36px;gap:6px;margin-bottom:6px}
+.mat input,.mat select{padding:9px 7px}
+.x{border:0;background:#fde8e6;color:var(--er);border-radius:8px;font-size:18px}
+.fotos{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.foto{border:1px solid var(--bd);border-radius:9px;overflow:hidden;background:#fafbfc;position:relative}
+.foto img{width:100%;height:120px;object-fit:cover;display:block}
+.foto .tp{position:absolute;top:6px;left:6px;font-size:11px;font-weight:700;padding:2px 7px;border-radius:12px;background:#000a;color:#fff}
+.foto input{border:0;border-top:1px solid var(--bd);border-radius:0;font-size:13px;padding:7px}
+.foto .x{position:absolute;top:6px;right:6px;width:30px;height:30px}
+.muted{color:var(--mu);font-size:14px}.center{text-align:center}
+.sig{width:100%;height:200px;border:2px dashed var(--bd);border-radius:10px;background:#fff;touch-action:none;display:block}
+.toast{position:fixed;left:50%;bottom:150px;transform:translateX(-50%);background:#1b2430;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;z-index:20;max-width:90%;text-align:center}
+.aviso{background:#fff4e0;border:1px solid #f3d29a;color:#7a4a00;border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:12px}
+.kv{display:grid;grid-template-columns:110px 1fr;gap:4px 10px;font-size:14px}.kv b{color:var(--mu);font-weight:600}
+.eqadd{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
+.eqadd .btn{grid-column:1/-1}
+.search{margin-bottom:10px}
+.fab{position:fixed;right:16px;bottom:80px;z-index:6;border-radius:30px;padding:14px 20px;box-shadow:0 4px 14px #0003}
+</style>
+</head>
+<body>
+<header><button id="voltar" hidden aria-label="Voltar">←</button><h1 id="titulo">B3 Visitas</h1><span id="salvo"></span></header>
+<main id="app"></main>
+<nav>
+  <a href="#/" data-n="visitas"><b>📋</b>Visitas</a>
+  <a href="#/clientes" data-n="clientes"><b>⛽</b>Clientes</a>
+  <a href="#/config" data-n="config"><b>⚙️</b>Ajustes</a>
+</nav>
+<script src="jspdf.umd.min.js"></script>
+<script>
+'use strict';
+/* ================== Constantes ================== */
+const ORIGENS = ['Chamado do cliente','Preventiva programada','Retorno de pendência anterior','Instalação / ativação','Detectado por monitoramento','Outro'];
+const TIPOS_EQ = ['Concentrador','Medidor de tanque (console)','Sonda de nível','Sensor de vazamento / interstício','Bomba / Bico','Cabeamento / rede','Outro'];
+const STATUS = [
+  {v:'resolvido', t:'Resolvido – operando normalmente', c:[22,121,74]},
+  {v:'parcial',   t:'Parcialmente resolvido – opera com restrição', c:[178,107,0]},
+  {v:'pendente',  t:'Não resolvido – aguardando peça/retorno', c:[180,35,24]},
+];
+const UNIDADES = ['un','m','pç','cx','kit','h'];
+const MSG_PADRAO = 'Olá {contato}! Segue o relatório da visita técnica nº {numero} realizada em {data} no {cliente}.\n\nAtendimento: {origem}\nSituação: {status}{pendencias}\n\nQualquer dúvida estou à disposição.\n{tecnico} – {empresa}';
+
+/* ================== Utilitários ================== */
+const $ = (s, el = document) => el.querySelector(s);
+const $$ = (s, el = document) => [...el.querySelectorAll(s)];
+const esc = s => (s ?? '').toString().replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const pad = (n, l = 4) => String(n ?? 0).padStart(l, '0');
+const fmtDT = ts => ts ? new Date(ts).toLocaleString('pt-BR', {dateStyle:'short', timeStyle:'short'}) : '—';
+const fmtD = ts => ts ? new Date(ts).toLocaleDateString('pt-BR') : '—';
+const fmtDataISO = s => s ? s.split('-').reverse().join('/') : '';
+const dur = (a, b) => { if (!a || !b) return '—'; const m = Math.round((b - a) / 60000); return m < 60 ? m + ' min' : Math.floor(m / 60) + 'h' + pad(m % 60, 2); };
+const soDig = s => (s || '').replace(/\D/g, '');
+const foneWA = s => { let d = soDig(s); if (d.length === 10 || d.length === 11) d = '55' + d; return d; };
+const slug = s => (s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-zA-Z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40);
+const statusInfo = v => STATUS.find(s => s.v === v);
+function toast(msg, ms = 2600) { const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg; document.body.appendChild(t); setTimeout(() => t.remove(), ms); }
+
+/* ================== IndexedDB ================== */
+const DB = {
+  db: null,
+  open() {
+    return new Promise((res, rej) => {
+      const r = indexedDB.open('b3visitas', 1);
+      r.onupgradeneeded = () => {
+        const d = r.result;
+        d.createObjectStore('config', {keyPath: 'k'});
+        d.createObjectStore('clientes', {keyPath: 'id'});
+        d.createObjectStore('visitas', {keyPath: 'id'});
+      };
+      r.onsuccess = () => { this.db = r.result; res(); };
+      r.onerror = () => rej(r.error);
+    });
+  },
+  tx(store, mode, fn) {
+    return new Promise((res, rej) => {
+      const t = this.db.transaction(store, mode); const s = t.objectStore(store);
+      const q = fn(s); t.oncomplete = () => res(q && q.result); t.onerror = () => rej(t.error);
+    });
+  },
+  get(store, k) { return this.tx(store, 'readonly', s => s.get(k)); },
+  all(store) { return this.tx(store, 'readonly', s => s.getAll()); },
+  put(store, v) { return this.tx(store, 'readwrite', s => s.put(v)); },
+  del(store, k) { return this.tx(store, 'readwrite', s => s.delete(k)); },
+  clear(store) { return this.tx(store, 'readwrite', s => s.clear()); },
+};
+async function getCfg() {
+  return Object.assign({k:'cfg', empresa:'', cnpj:'', tecnico:'', telefone:'', email:'', logo:'', proxOS:1, msg:MSG_PADRAO, ultimoBackup:0}, await DB.get('config', 'cfg'));
+}
+const saveCfg = c => DB.put('config', c);
+
+/* ================== GPS / Fotos ================== */
+function getGPS(timeout = 9000) {
+  return new Promise(res => {
+    if (!navigator.geolocation) return res(null);
+    navigator.geolocation.getCurrentPosition(
+      p => res({lat: +p.coords.latitude.toFixed(6), lng: +p.coords.longitude.toFixed(6), acc: Math.round(p.coords.accuracy)}),
+      () => res(null), {enableHighAccuracy: true, timeout, maximumAge: 60000});
+  });
+}
+const loadImg = src => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = rej; i.src = src; });
+async function processarFoto(file, carimbo) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await loadImg(url);
+    const max = 1600; const s = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.round(img.naturalWidth * s), h = Math.round(img.naturalHeight * s);
+    const cv = document.createElement('canvas'); cv.width = w; cv.height = h;
+    const x = cv.getContext('2d'); x.drawImage(img, 0, 0, w, h);
+    const fs = Math.max(14, Math.round(Math.max(w, h) / 60)); x.font = `bold ${fs}px sans-serif`;
+    const tw = x.measureText(carimbo).width;
+    x.fillStyle = 'rgba(0,0,0,.55)'; x.fillRect(0, h - fs * 1.8, tw + fs, fs * 1.8);
+    x.fillStyle = '#fff'; x.fillText(carimbo, fs / 2, h - fs * 0.55);
+    return {data: cv.toDataURL('image/jpeg', 0.72), w, h};
+  } finally { URL.revokeObjectURL(url); }
+}
+async function processarLogo(file) {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await loadImg(url); const s = Math.min(1, 500 / Math.max(img.naturalWidth, img.naturalHeight));
+    const cv = document.createElement('canvas'); cv.width = Math.round(img.naturalWidth * s); cv.height = Math.round(img.naturalHeight * s);
+    cv.getContext('2d').drawImage(img, 0, 0, cv.width, cv.height); return cv.toDataURL('image/png');
+  } finally { URL.revokeObjectURL(url); }
+}
+
+/* ================== Shell / roteamento ================== */
+const app = $('#app');
+let salvarTimer = null, salvarFn = null;
+function setHeader(titulo, voltar) {
+  $('#titulo').textContent = titulo; const b = $('#voltar'); b.hidden = !voltar; b.onclick = () => location.hash = voltar; $('#salvo').textContent = '';
+}
+function setNav(n) { $$('nav a').forEach(a => a.classList.toggle('on', a.dataset.n === n)); }
+function flushSalvar() { if (salvarTimer) { clearTimeout(salvarTimer); salvarTimer = null; salvarFn && salvarFn(); } }
+function agendarSalvar(fn) { salvarFn = fn; clearTimeout(salvarTimer); $('#salvo').textContent = '…'; salvarTimer = setTimeout(async () => { salvarTimer = null; await fn(); $('#salvo').textContent = 'Salvo ✓'; }, 400); }
+document.addEventListener('visibilitychange', () => { if (document.hidden) flushSalvar(); });
+window.addEventListener('hashchange', () => { flushSalvar(); route(); });
+
+async function route() {
+  const p = (location.hash.slice(1) || '/').split('?')[0].split('/').filter(Boolean);
+  window.scrollTo(0, 0); app.oninput = app.onchange = null; document.querySelectorAll('.bar,.fab').forEach(e => e.remove());
+  try {
+    if (!p.length) return vVisitas();
+    if (p[0] === 'nova') return vNova();
+    if (p[0] === 'visita') return vVisita(p[1]);
+    if (p[0] === 'finalizar') return vFinalizar(p[1]);
+    if (p[0] === 'relatorio') return vRelatorio(p[1]);
+    if (p[0] === 'clientes') return vClientes();
+    if (p[0] === 'cliente') return vCliente(p[1]);
+    if (p[0] === 'config') return vConfig();
+    vVisitas();
+  } catch (e) { console.error(e); app.innerHTML = `<div class="card">Erro: ${esc(e.message)}</div>`; }
+}
+
+/* ================== Lista de visitas ================== */
+async function vVisitas() {
+  setHeader('Visitas'); setNav('visitas');
+  const [vs, cs, cfg] = [await DB.all('visitas'), await DB.all('clientes'), await getCfg()];
+  const cli = Object.fromEntries(cs.map(c => [c.id, c]));
+  vs.sort((a, b) => (a.status === 'aberta' ? 0 : 1) - (b.status === 'aberta' ? 0 : 1) || (b.checkin?.ts || 0) - (a.checkin?.ts || 0));
+  let html = '';
+  if (!cfg.empresa || !cfg.tecnico) html += `<div class="aviso">Preencha os dados da sua empresa em <a href="#/config">Ajustes</a> — eles aparecem no cabeçalho do relatório.</div>`;
+  const dias = cfg.ultimoBackup ? (Date.now() - cfg.ultimoBackup) / 864e5 : 999;
+  if (vs.length && dias > 7) html += `<div class="aviso">Último backup: ${cfg.ultimoBackup ? fmtD(cfg.ultimoBackup) : 'nunca'}. Os dados ficam só neste celular — <a href="#/config">faça um backup</a>.</div>`;
+  html += `<input class="search" id="busca" placeholder="Buscar por cliente ou nº…">`;
+  html += `<div id="lista">${vs.map(v => {
+    const c = cli[v.clienteId] || {nome:'(cliente removido)'};
+    const b = v.status === 'aberta' ? '<span class="badge ab">EM ANDAMENTO</span>' : v.enviadoEm ? '<span class="badge en">ENVIADO</span>' : '<span class="badge fi">FINALIZADA</span>';
+    const dest = v.status === 'aberta' ? 'visita' : 'relatorio';
+    return `<a class="item" href="#/${dest}/${v.id}" data-busca="${esc((c.nome + ' ' + pad(v.numero)).toLowerCase())}">
+      <div class="row"><span class="t">Nº ${pad(v.numero)} · ${esc(c.nome)}</span><span style="flex:none">${b}</span></div>
+      <div class="s">${fmtDT(v.checkin?.ts)} · ${esc(v.origem || 'origem não informada')}</div></a>`;
+  }).join('') || '<p class="muted center">Nenhuma visita ainda.<br>Toque em <b>+ Nova visita</b> ao chegar no cliente.</p>'}</div>`;
+  app.innerHTML = html;
+  $('#busca').oninput = e => { const q = e.target.value.toLowerCase(); $$('#lista .item').forEach(i => i.hidden = !i.dataset.busca.includes(q)); };
+  const fab = document.createElement('a'); fab.className = 'btn fab'; fab.href = '#/nova'; fab.textContent = '+ Nova visita'; document.body.appendChild(fab);
+}
+
+/* ================== Nova visita (check-in) ================== */
+async function vNova() {
+  setHeader('Nova visita – cliente', '#/'); setNav('visitas');
+  const cs = (await DB.all('clientes')).filter(c => !c.inativo).sort((a, b) => a.nome.localeCompare(b.nome));
+  app.innerHTML = `<p class="muted">Selecione o cliente. A hora de chegada e a localização serão registradas agora.</p>
+    <input class="search" id="busca" placeholder="Buscar cliente…">
+    <div id="lista">${cs.map(c => `<a class="item" href="javascript:void 0" data-id="${c.id}" data-busca="${esc((c.nome + ' ' + (c.cidade || '')).toLowerCase())}"><div class="t">${esc(c.nome)}</div><div class="s">${esc(c.cidade || '')}</div></a>`).join('')}</div>
+    <a class="btn sec full" href="#/cliente/novo?nova=1">+ Cadastrar novo cliente</a>`;
+  $('#busca').oninput = e => { const q = e.target.value.toLowerCase(); $$('#lista .item').forEach(i => i.hidden = !i.dataset.busca.includes(q)); };
+  $$('#lista .item').forEach(a => a.onclick = () => criarVisita(a.dataset.id));
+}
+async function criarVisita(clienteId) {
+  const cfg = await getCfg();
+  const v = {id: uid(), numero: cfg.proxOS, clienteId, status: 'aberta', checkin: {ts: Date.now(), gps: null},
+    origem: '', referencia: '', problemaRelatado: '', equipamentos: [], diagnostico: '', solucao: '', statusFinal: '',
+    materiais: [], fotos: [], pendencias: '', proximaVisita: '', obsInternas: ''};
+  cfg.proxOS = (+cfg.proxOS || 1) + 1;
+  await saveCfg(cfg); await DB.put('visitas', v);
+  location.hash = '#/visita/' + v.id;
+}
+
+/* ================== Formulário da visita ================== */
+async function vVisita(id) {
+  const v = await DB.get('visitas', id); if (!v) return location.hash = '#/';
+  if (v.status !== 'aberta') return location.hash = '#/relatorio/' + id;
+  const c = await DB.get('clientes', v.clienteId) || {nome:'?', equipamentos:[]};
+  c.equipamentos = c.equipamentos || [];
+  const todosMats = [...new Set((await DB.all('visitas')).flatMap(x => (x.materiais || []).map(m => m.desc.trim())).filter(Boolean))].sort();
+  setHeader(`Nº ${pad(v.numero)} · ${c.nome}`, '#/'); setNav('visitas');
+  const salvar = () => DB.put('visitas', v);
+  const g = v.checkin.gps;
+  if (!g) getGPS().then(gps => {
+    const el = $('#gpsIn'); if (!el) return;
+    if (gps) { v.checkin.gps = gps; salvar(); el.textContent = `📍 ${gps.lat}, ${gps.lng} (±${gps.acc} m)`; }
+    else el.textContent = 'localização indisponível (ative o GPS)';
+  });
+
+  app.innerHTML = `
+  <div class="card"><div class="kv"><b>Chegada</b><span>${fmtDT(v.checkin.ts)}</span><b>Local</b><span id="gpsIn">${g ? `📍 ${g.lat}, ${g.lng} (±${g.acc} m)` : 'obtendo localização…'}</span></div></div>
+
+  <div class="card"><h2>1. Origem do atendimento</h2>
+    <label>Motivo da visita *</label>
+    <select data-f="origem"><option value="">Selecione…</option>${ORIGENS.map(o => `<option ${v.origem === o ? 'selected' : ''}>${o}</option>`).join('')}</select>
+    <label>Nº do chamado / quem solicitou</label>
+    <input data-f="referencia" value="${esc(v.referencia)}" placeholder="Ex.: chamado 152 – João (gerente)">
+    <label>Problema relatado pelo cliente</label>
+    <textarea data-f="problemaRelatado" placeholder="Como o cliente descreveu o problema">${esc(v.problemaRelatado)}</textarea>
+  </div>
+
+  <div class="card"><h2>2. Equipamentos atendidos</h2><div id="eqs"></div>
+    <details><summary class="muted" style="margin-top:8px">+ Adicionar equipamento a este cliente</summary>
+    <div class="eqadd"><select id="eqTipo">${TIPOS_EQ.map(t => `<option>${t}</option>`).join('')}</select>
+      <input id="eqModelo" placeholder="Marca / modelo"><input id="eqSerie" placeholder="Nº de série"><input id="eqLocal" placeholder="Local (ex.: tanque 2)">
+      <button class="btn sec sm" id="eqAdd">Adicionar</button></div></details>
+  </div>
+
+  <div class="card"><h2>3. Diagnóstico e solução</h2>
+    <label>Diagnóstico – causa encontrada</label>
+    <textarea data-f="diagnostico" placeholder="O que foi constatado no local">${esc(v.diagnostico)}</textarea>
+    <label>Solução – serviço executado *</label>
+    <textarea data-f="solucao" placeholder="O que foi feito para resolver">${esc(v.solucao)}</textarea>
+    <label>Situação ao sair *</label>
+    ${STATUS.map(s => `<label class="radio" style="margin:0 0 6px;color:var(--tx);font-weight:normal"><input type="radio" name="st" data-f="statusFinal" value="${s.v}" ${v.statusFinal === s.v ? 'checked' : ''}>${s.t}</label>`).join('')}
+  </div>
+
+  <div class="card"><h2>4. Material utilizado</h2>
+    <div class="mat muted" style="font-size:12px;margin-bottom:2px"><span>Descrição</span><span>Qtd</span><span>Un</span><span></span></div>
+    <div id="mats"></div><datalist id="dlMats">${todosMats.map(m => `<option value="${esc(m)}">`).join('')}</datalist>
+    <button class="btn sec sm" id="matAdd">+ Adicionar material</button>
+  </div>
+
+  <div class="card"><h2>5. Fotos</h2>
+    <div class="row"><button class="btn sec sm" id="fAntes">📷 Antes</button><button class="btn sec sm" id="fDepois">📷 Depois</button></div>
+    <input type="file" id="fileFoto" accept="image/*" multiple hidden>
+    <div class="fotos" id="fotos"></div>
+  </div>
+
+  <div class="card"><h2>6. Pendências e próxima visita</h2>
+    <label>Pendências / recomendações ao cliente</label>
+    <textarea data-f="pendencias" placeholder="Ex.: trocar sonda do tanque 3 (orçamento enviado)">${esc(v.pendencias)}</textarea>
+    <label>Próxima visita / preventiva</label>
+    <input type="date" data-f="proximaVisita" value="${esc(v.proximaVisita)}">
+    <label>Observações internas (não saem no relatório)</label>
+    <textarea data-f="obsInternas" style="min-height:60px">${esc(v.obsInternas)}</textarea>
+  </div>
+  <button class="btn er full" id="excluir">Excluir esta visita</button>`;
+
+  const bar = document.createElement('div'); bar.className = 'bar';
+  bar.innerHTML = `<div class="in"><button class="btn ok" id="finalizar">✔ Finalizar e coletar assinatura</button></div>`;
+  document.body.appendChild(bar);
+
+  // campos simples
+  const onField = e => { const f = e.target.dataset.f; if (!f) return; v[f] = e.target.value; agendarSalvar(salvar); };
+  app.oninput = app.onchange = onField;
+
+  // equipamentos
+  const renderEqs = () => {
+    $('#eqs').innerHTML = c.equipamentos.filter(e => !e.inativo).map(e => `<label class="chk" style="margin:0;font-weight:normal;color:var(--tx)"><input type="checkbox" data-eq="${e.id}" ${v.equipamentos.includes(e.id) ? 'checked' : ''}>
+      <span><b>${esc(e.tipo)}</b> ${esc(e.modelo || '')}<br><span class="muted">${e.serie ? 'Série ' + esc(e.serie) : ''}${e.local ? ' · ' + esc(e.local) : ''}</span></span></label>`).join('')
+      || '<p class="muted">Nenhum equipamento cadastrado para este cliente.</p>';
+    $$('#eqs [data-eq]').forEach(cb => cb.onchange = () => { v.equipamentos = $$('#eqs [data-eq]:checked').map(x => x.dataset.eq); agendarSalvar(salvar); });
+  };
+  renderEqs();
+  $('#eqAdd').onclick = async () => {
+    const e = {id: uid(), tipo: $('#eqTipo').value, modelo: $('#eqModelo').value.trim(), serie: $('#eqSerie').value.trim(), local: $('#eqLocal').value.trim()};
+    c.equipamentos.push(e); await DB.put('clientes', c); v.equipamentos.push(e.id); await salvar();
+    $('#eqModelo').value = $('#eqSerie').value = $('#eqLocal').value = ''; renderEqs(); toast('Equipamento adicionado ao cadastro do cliente');
+  };
+
+  // materiais
+  const renderMats = () => {
+    $('#mats').innerHTML = v.materiais.map((m, i) => `<div class="mat"><input list="dlMats" data-mi="${i}" data-mk="desc" value="${esc(m.desc)}" placeholder="Ex.: Placa CPU">
+      <input type="number" inputmode="decimal" step="any" min="0" data-mi="${i}" data-mk="qtd" value="${esc(m.qtd)}">
+      <select data-mi="${i}" data-mk="un">${UNIDADES.map(u => `<option ${m.un === u ? 'selected' : ''}>${u}</option>`).join('')}</select>
+      <button class="x" data-mdel="${i}">×</button></div>`).join('');
+    $$('#mats [data-mi]').forEach(el => el.oninput = el.onchange = () => { v.materiais[el.dataset.mi][el.dataset.mk] = el.value; agendarSalvar(salvar); });
+    $$('#mats [data-mdel]').forEach(b => b.onclick = () => { v.materiais.splice(+b.dataset.mdel, 1); renderMats(); agendarSalvar(salvar); });
+  };
+  renderMats();
+  $('#matAdd').onclick = () => { v.materiais.push({desc: '', qtd: 1, un: 'un'}); renderMats(); $$('#mats [data-mk="desc"]').pop().focus(); agendarSalvar(salvar); };
+
+  // fotos
+  let tipoFoto = 'antes';
+  const renderFotos = () => {
+    $('#fotos').innerHTML = v.fotos.map((f, i) => `<div class="foto"><span class="tp">${f.tipo.toUpperCase()}</span><button class="x" data-fdel="${i}">×</button>
+      <img src="${f.data}" alt=""><input data-fi="${i}" value="${esc(f.legenda)}" placeholder="Legenda"></div>`).join('');
+    $$('#fotos [data-fi]').forEach(el => el.oninput = () => { v.fotos[el.dataset.fi].legenda = el.value; agendarSalvar(salvar); });
+    $$('#fotos [data-fdel]').forEach(b => b.onclick = () => { if (confirm('Remover esta foto?')) { v.fotos.splice(+b.dataset.fdel, 1); renderFotos(); agendarSalvar(salvar); } });
+  };
+  renderFotos();
+  $('#fAntes').onclick = () => { tipoFoto = 'antes'; $('#fileFoto').click(); };
+  $('#fDepois').onclick = () => { tipoFoto = 'depois'; $('#fileFoto').click(); };
+  $('#fileFoto').onchange = async e => {
+    const files = [...e.target.files]; e.target.value = ''; if (!files.length) return;
+    toast('Processando foto…', 1200);
+    for (const file of files) {
+      const stamp = `${new Date().toLocaleString('pt-BR', {dateStyle: 'short', timeStyle: 'short'})} · ${c.nome} · OS ${pad(v.numero)}`;
+      const r = await processarFoto(file, stamp);
+      v.fotos.push({id: uid(), tipo: tipoFoto, legenda: '', ...r});
+    }
+    await salvar(); renderFotos();
+  };
+
+  $('#excluir').onclick = async () => { if (confirm(`Excluir a visita nº ${pad(v.numero)}? Isso não pode ser desfeito.`)) { clearTimeout(salvarTimer); salvarTimer = null; await DB.del('visitas', v.id); location.hash = '#/'; } };
+  $('#finalizar').onclick = async () => {
+    flushSalvar(); await salvar();
+    const falta = [];
+    if (!v.origem) falta.push('origem do atendimento');
+    if (!v.solucao.trim()) falta.push('solução / serviço executado');
+    if (!v.statusFinal) falta.push('situação ao sair');
+    if (falta.length) return toast('Falta preencher: ' + falta.join(', '), 3500);
+    if (v.statusFinal !== 'resolvido' && !v.pendencias.trim()) return toast('Situação não resolvida: descreva a pendência no item 6.', 3500);
+    if (!v.equipamentos.length && !confirm('Nenhum equipamento marcado. Continuar mesmo assim?')) return;
+    location.hash = '#/finalizar/' + v.id;
+  };
+}
+
+/* ================== Finalizar (assinatura / check-out) ================== */
+async function vFinalizar(id) {
+  const v = await DB.get('visitas', id); if (!v) return location.hash = '#/';
+  const c = await DB.get('clientes', v.clienteId) || {};
+  setHeader('Assinatura do cliente', '#/visita/' + id); setNav('visitas');
+  app.innerHTML = `<div class="card"><h2>Responsável no local</h2>
+    <label>Nome *</label><input id="rNome" value="${esc(v.responsavelNome || c.contato || '')}">
+    <label>Cargo / documento (opcional)</label><input id="rDoc" value="${esc(v.responsavelDoc || '')}" placeholder="Ex.: Gerente">
+    <label>Assinatura</label><canvas class="sig" id="sig"></canvas>
+    <div class="row" style="margin-top:6px"><span class="muted">Assine com o dedo</span><button class="btn sec sm" style="flex:none" id="limpar">Limpar</button></div>
+    <label class="chk" style="color:var(--tx);font-weight:normal;margin-top:8px"><input type="checkbox" id="semAss"><span>Responsável não disponível para assinar</span></label>
+    <input id="semAssMotivo" placeholder="Motivo (ex.: gerente ausente)" hidden>
+  </div>
+  <p class="muted">Ao confirmar, a hora de saída e a localização são registradas e o relatório é gerado.</p>`;
+  const bar = document.createElement('div'); bar.className = 'bar';
+  bar.innerHTML = `<div class="in"><button class="btn ok" id="confirmar">Confirmar e gerar relatório</button></div>`; document.body.appendChild(bar);
+
+  const cv = $('#sig'), r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+  cv.width = r.width * dpr; cv.height = r.height * dpr;
+  const x = cv.getContext('2d'); x.scale(dpr, dpr); x.lineWidth = 2.4; x.lineCap = 'round'; x.lineJoin = 'round'; x.strokeStyle = x.fillStyle = '#0b1f44';
+  let desenhando = false, sujo = false, ult;
+  const pt = e => { const b = cv.getBoundingClientRect(); return {x: e.clientX - b.left, y: e.clientY - b.top}; };
+  cv.onpointerdown = e => { desenhando = true; sujo = true; cv.setPointerCapture(e.pointerId); ult = pt(e); x.beginPath(); x.arc(ult.x, ult.y, 1.1, 0, 7); x.fill(); };
+  cv.onpointermove = e => { if (!desenhando) return; const p = pt(e); x.beginPath(); x.moveTo(ult.x, ult.y); x.lineTo(p.x, p.y); x.stroke(); ult = p; };
+  cv.onpointerup = cv.onpointercancel = () => desenhando = false;
+  $('#limpar').onclick = () => { x.clearRect(0, 0, r.width, r.height); sujo = false; };
+  $('#semAss').onchange = e => { $('#semAssMotivo').hidden = !e.target.checked; cv.style.opacity = e.target.checked ? .35 : 1; };
+
+  $('#confirmar').onclick = async () => {
+    const nome = $('#rNome').value.trim(), sem = $('#semAss').checked;
+    if (!nome) return toast('Informe o nome do responsável');
+    if (!sem && !sujo) return toast('Colete a assinatura ou marque "não disponível para assinar"');
+    const btn = $('#confirmar'); btn.disabled = true; btn.textContent = 'Registrando saída…';
+    v.responsavelNome = nome; v.responsavelDoc = $('#rDoc').value.trim();
+    v.assinatura = sem ? '' : cv.toDataURL('image/png');
+    v.semAssinatura = sem ? ($('#semAssMotivo').value.trim() || 'não informado') : '';
+    v.checkout = {ts: Date.now(), gps: null};
+    v.checkout.gps = await getGPS(7000);
+    v.status = 'finalizada';
+    if (!c.contato && nome) { c.contato = nome; if (c.id) await DB.put('clientes', c); }
+    await DB.put('visitas', v);
+    location.hash = '#/relatorio/' + v.id;
+  };
+}
+
+/* ================== Relatório / envio ================== */
+function montarMensagem(v, c, cfg) {
+  const st = statusInfo(v.statusFinal);
+  const pend = v.pendencias.trim() ? `\nPendências: ${v.pendencias.trim()}` : '';
+  return (cfg.msg || MSG_PADRAO)
+    .replaceAll('{contato}', (c.contato || '').split(' ')[0] || '').replaceAll('{numero}', pad(v.numero))
+    .replaceAll('{data}', fmtD(v.checkin.ts)).replaceAll('{cliente}', c.nome || '').replaceAll('{origem}', v.origem)
+    .replaceAll('{status}', st ? st.t : '').replaceAll('{pendencias}', pend).replaceAll('{tecnico}', cfg.tecnico || '')
+    .replaceAll('{empresa}', cfg.empresa || '').replace(/Olá !/, 'Olá!');
+}
+async function vRelatorio(id) {
+  const v = await DB.get('visitas', id); if (!v) return location.hash = '#/';
+  if (v.status === 'aberta') return location.hash = '#/visita/' + id;
+  const c = await DB.get('clientes', v.clienteId) || {nome: '?'}; const cfg = await getCfg();
+  setHeader(`Relatório nº ${pad(v.numero)}`, '#/'); setNav('visitas');
+  const st = statusInfo(v.statusFinal); const msg = montarMensagem(v, c, cfg);
+  const nomeArq = `OS-${pad(v.numero)}-${slug(c.nome)}.pdf`;
+  app.innerHTML = `<div class="card"><div class="kv">
+    <b>Cliente</b><span>${esc(c.nome)}</span><b>Chegada</b><span>${fmtDT(v.checkin.ts)}</span><b>Saída</b><span>${fmtDT(v.checkout?.ts)} (${dur(v.checkin.ts, v.checkout?.ts)})</span>
+    <b>Origem</b><span>${esc(v.origem)}</span><b>Situação</b><span>${esc(st?.t || '')}</span><b>Fotos</b><span>${v.fotos.length}</span>
+    <b>Enviado</b><span>${v.enviadoEm ? fmtDT(v.enviadoEm) : 'ainda não'}</span></div></div>
+    <div class="card"><h2>Enviar ao cliente</h2>
+      <p class="muted" id="pdfStatus">Gerando PDF…</p>
+      <button class="btn wa full" id="enviar" disabled>📤 Enviar PDF pelo WhatsApp</button>
+      <p class="muted" style="font-size:13px">A mensagem é copiada automaticamente — se o WhatsApp não colocar o texto junto do PDF, é só colar.</p>
+      <button class="btn sec full" id="baixar" disabled>⬇ Baixar / visualizar PDF</button>
+      <button class="btn sec full" id="soTexto">💬 Abrir conversa ${c.whatsapp ? 'com ' + esc(c.whatsapp) : ''} (só texto)</button>
+      <label>Mensagem</label><textarea id="msg" style="min-height:150px">${esc(msg)}</textarea>
+    </div>
+    <button class="btn er full" id="reabrir">Reabrir visita para edição</button>`;
+
+  let blob = null;
+  try { blob = gerarPDF(v, c, cfg).output('blob'); $('#pdfStatus').textContent = `${nomeArq} · ${(blob.size / 1024).toFixed(0)} KB`; $('#enviar').disabled = $('#baixar').disabled = false; }
+  catch (e) { console.error(e); $('#pdfStatus').textContent = 'Erro ao gerar PDF: ' + e.message; }
+
+  const baixar = () => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nomeArq; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 60000); };
+  const marcarEnviado = async () => { v.enviadoEm = Date.now(); await DB.put('visitas', v); };
+  $('#baixar').onclick = baixar;
+  $('#enviar').onclick = async () => {
+    const texto = $('#msg').value;
+    try { await navigator.clipboard.writeText(texto); } catch {}
+    const file = new File([blob], nomeArq, {type: 'application/pdf'});
+    if (navigator.canShare && navigator.canShare({files: [file]})) {
+      try { await navigator.share({files: [file], text: texto, title: nomeArq}); await marcarEnviado(); toast('Relatório enviado ✓'); }
+      catch (e) { if (e.name !== 'AbortError') toast('Não foi possível compartilhar: ' + e.message); }
+    } else { baixar(); toast('Compartilhamento indisponível neste navegador — PDF baixado. Anexe no WhatsApp.', 4000); }
+  };
+  $('#soTexto').onclick = () => {
+    const n = foneWA(c.whatsapp); const t = encodeURIComponent($('#msg').value);
+    window.open(n ? `https://wa.me/${n}?text=${t}` : `https://wa.me/?text=${t}`, '_blank');
+  };
+  $('#reabrir').onclick = async () => { if (confirm('Reabrir a visita? A assinatura e a hora de saída serão descartadas.')) { v.status = 'aberta'; delete v.checkout; v.assinatura = ''; v.enviadoEm = 0; await DB.put('visitas', v); location.hash = '#/visita/' + v.id; } };
+}
+
+/* ================== PDF ================== */
+function gerarPDF(v, c, cfg) {
+  const {jsPDF} = window.jspdf; const d = new jsPDF({unit: 'mm', format: 'a4'});
+  const W = 210, H = 297, M = 14, CW = W - 2 * M, BOT = H - 16; let y = M;
+  const AZ = [22, 78, 140], CINZA = [102, 112, 133], TX = [27, 36, 48];
+  const fmt = s => s.startsWith('data:image/png') ? 'PNG' : 'JPEG';
+  const need = h => { if (y + h > BOT) { d.addPage(); y = M; } };
+  const font = (sz, st = 'normal', cor = TX) => { d.setFont('helvetica', st); d.setFontSize(sz); d.setTextColor(...cor); };
+
+  // Cabeçalho
+  let xTxt = M;
+  if (cfg.logo) { try { const p = d.getImageProperties(cfg.logo); const h = 18, w = Math.min(45, p.width * h / p.height); d.addImage(cfg.logo, 'PNG', M, y, w, h, 'logo', 'FAST'); xTxt = M + w + 4; } catch {} }
+  font(13, 'bold'); d.text(cfg.empresa || 'Relatório técnico', xTxt, y + 5);
+  font(8.5, 'normal', CINZA);
+  const linhasEmp = [cfg.cnpj && 'CNPJ ' + cfg.cnpj, [cfg.telefone, cfg.email].filter(Boolean).join(' · '), cfg.tecnico && 'Técnico: ' + cfg.tecnico].filter(Boolean);
+  linhasEmp.forEach((l, i) => d.text(l, xTxt, y + 10 + i * 3.8));
+  font(10, 'bold', AZ); d.text('RELATÓRIO DE VISITA TÉCNICA', W - M, y + 5, {align: 'right'});
+  font(16, 'bold', AZ); d.text('Nº ' + pad(v.numero), W - M, y + 12, {align: 'right'});
+  y += 22; d.setDrawColor(...AZ); d.setLineWidth(0.6); d.line(M, y, W - M, y); y += 5;
+
+  const secao = t => { need(14); d.setFillColor(...AZ); d.rect(M, y, CW, 6.2, 'F'); font(9, 'bold', [255, 255, 255]); d.text(t.toUpperCase(), M + 2.5, y + 4.3); y += 9; };
+  const par = (t, sz = 9.5, st = 'normal', cor = TX) => {
+    font(sz, st, cor); const lh = sz * 0.47;
+    d.splitTextToSize((t || '').trim() || '—', CW).forEach(l => { need(lh); d.text(l, M, y + lh * 0.75); y += lh; }); y += 2.5;
+  };
+  const kv = (pares, cols = 2) => {
+    const cw = CW / cols; font(9);
+    for (let i = 0; i < pares.length; i += cols) {
+      let hMax = 0; need(10);
+      pares.slice(i, i + cols).forEach(([k, val], j) => {
+        const x0 = M + j * cw; font(7.5, 'bold', CINZA); d.text(k.toUpperCase(), x0, y + 2.5);
+        font(9.5, 'normal'); const ls = d.splitTextToSize(String(val || '—'), cw - 4); d.text(ls, x0, y + 6.6); hMax = Math.max(hMax, 4.5 + ls.length * 4.4);
+      });
+      y += hMax + 1.5;
+    }
+    y += 1.5;
+  };
+
+  secao('Cliente');
+  kv([['Cliente', c.nome], ['CNPJ', c.cnpj], ['Endereço', [c.endereco, c.cidade].filter(Boolean).join(' – ')], ['Contato', [c.contato, c.whatsapp].filter(Boolean).join(' · ')]]);
+
+  secao('Atendimento');
+  kv([['Origem', v.origem], ['Chamado / solicitante', v.referencia], ['Chegada', fmtDT(v.checkin.ts)], ['Saída', fmtDT(v.checkout?.ts)], ['Tempo no local', dur(v.checkin.ts, v.checkout?.ts)], ['Técnico', cfg.tecnico]]);
+  if (v.problemaRelatado.trim()) { font(7.5, 'bold', CINZA); need(6); d.text('PROBLEMA RELATADO', M, y + 2.5); y += 4.5; par(v.problemaRelatado); }
+
+  const eqs = (c.equipamentos || []).filter(e => v.equipamentos.includes(e.id));
+  if (eqs.length) {
+    secao('Equipamentos atendidos');
+    eqs.forEach(e => par(`•  ${e.tipo}${e.modelo ? ' – ' + e.modelo : ''}${e.serie ? '  |  Série ' + e.serie : ''}${e.local ? '  |  ' + e.local : ''}`, 9.5));
+  }
+
+  secao('Diagnóstico');
+  par(v.diagnostico);
+  secao('Solução / serviço executado');
+  par(v.solucao);
+  const st = statusInfo(v.statusFinal);
+  if (st) { need(10); d.setFillColor(...st.c); d.roundedRect(M, y, CW, 8, 1.5, 1.5, 'F'); font(10, 'bold', [255, 255, 255]); d.text('SITUAÇÃO AO SAIR: ' + st.t.toUpperCase(), M + 3, y + 5.4); y += 12; }
+
+  const mats = v.materiais.filter(m => m.desc.trim());
+  if (mats.length) {
+    secao('Material utilizado');
+    const cQ = M + CW - 36, cU = M + CW - 14;
+    y += 2; font(8, 'bold', CINZA); d.text('ITEM', M + 1, y); d.text('QTD', cQ, y, {align: 'right'}); d.text('UN', cU, y); y += 2; d.setDrawColor(210); d.setLineWidth(0.2); d.line(M, y, M + CW, y); y += 1;
+    mats.forEach(m => {
+      font(9.5); const ls = d.splitTextToSize(m.desc, CW - 45); const h = ls.length * 4.4 + 2; need(h);
+      d.text(ls, M + 1, y + 4); d.text(String(m.qtd).replace('.', ','), cQ, y + 4, {align: 'right'}); d.text(m.un || '', cU, y + 4);
+      y += h; d.line(M, y, M + CW, y);
+    });
+    y += 4;
+  }
+
+  if (v.pendencias.trim() || v.proximaVisita) {
+    secao('Pendências e recomendações');
+    if (v.pendencias.trim()) par(v.pendencias);
+    if (v.proximaVisita) par('Próxima visita prevista: ' + fmtDataISO(v.proximaVisita), 9.5, 'bold');
+  }
+
+  if (v.fotos.length) {
+    const ordem = [...v.fotos.filter(f => f.tipo === 'antes'), ...v.fotos.filter(f => f.tipo !== 'antes')];
+    const gw = (CW - 6) / 2, maxH = 68;
+    need(9 + maxH + 10); secao('Registro fotográfico');
+    for (let i = 0; i < ordem.length; i += 2) {
+      const par2 = ordem.slice(i, i + 2);
+      const hs = par2.map(f => Math.min(maxH, gw * (f.h || 3) / (f.w || 4)));
+      const hr = Math.max(...hs) + 10; need(hr);
+      par2.forEach((f, j) => {
+        const fw = Math.min(gw, hs[j] * (f.w || 4) / (f.h || 3)); const x0 = M + j * (gw + 6) + (gw - fw) / 2;
+        d.addImage(f.data, fmt(f.data), x0, y, fw, hs[j], undefined, 'FAST');
+        font(8, 'bold', f.tipo === 'antes' ? [178, 107, 0] : [22, 121, 74]);
+        const leg = (f.tipo === 'antes' ? 'ANTES' : 'DEPOIS') + (f.legenda ? ' – ' : '');
+        const yl = y + hr - 6, xl = M + j * (gw + 6);
+        d.text(leg, xl, yl);
+        if (f.legenda) { const lw = d.getTextWidth(leg); font(8, 'normal'); d.text(d.splitTextToSize(f.legenda, gw - lw)[0], xl + lw, yl); }
+      });
+      y += hr;
+    }
+  }
+
+  // Assinatura
+  need(44); y += 4;
+  font(8.5, 'normal', CINZA); d.text(d.splitTextToSize('Declaro que acompanhei a visita técnica e estou ciente dos serviços executados e das pendências descritas neste relatório.', CW), M, y); y += 9;
+  const sx = W / 2 - 40;
+  if (v.assinatura) { try { d.addImage(v.assinatura, 'PNG', sx + 5, y, 70, 22, undefined, 'FAST'); } catch {} }
+  else { font(9, 'italic', CINZA); d.text('Sem assinatura – ' + (v.semAssinatura || ''), W / 2, y + 14, {align: 'center'}); }
+  y += 23; d.setDrawColor(...TX); d.setLineWidth(0.3); d.line(sx, y, sx + 80, y);
+  font(9.5, 'bold'); d.text(v.responsavelNome || '', W / 2, y + 4.5, {align: 'center'});
+  font(8.5, 'normal', CINZA); d.text([v.responsavelDoc, 'Responsável no local · ' + fmtDT(v.checkout?.ts)].filter(Boolean).join(' · '), W / 2, y + 8.8, {align: 'center'});
+
+  // Rodapé
+  const g = v.checkout?.gps || v.checkin.gps;
+  const n = d.getNumberOfPages();
+  for (let i = 1; i <= n; i++) {
+    d.setPage(i); font(7, 'normal', CINZA); d.setDrawColor(220); d.setLineWidth(0.2); d.line(M, H - 11, W - M, H - 11);
+    d.text(`OS ${pad(v.numero)} · ${c.nome || ''}${g ? ` · Local registrado: ${g.lat}, ${g.lng}` : ''}`, M, H - 7);
+    d.text(`Página ${i} de ${n}`, W - M, H - 7, {align: 'right'});
+  }
+  return d;
+}
+
+/* ================== Clientes ================== */
+async function vClientes() {
+  setHeader('Clientes'); setNav('clientes');
+  const cs = (await DB.all('clientes')).sort((a, b) => (a.inativo ? 1 : 0) - (b.inativo ? 1 : 0) || a.nome.localeCompare(b.nome));
+  app.innerHTML = `<input class="search" id="busca" placeholder="Buscar cliente…"><div id="lista">${cs.map(c => `<a class="item" href="#/cliente/${c.id}" data-busca="${esc((c.nome + ' ' + (c.cidade || '')).toLowerCase())}" style="${c.inativo ? 'opacity:.5' : ''}">
+    <div class="t">${esc(c.nome)}${c.inativo ? ' (inativo)' : ''}</div><div class="s">${esc(c.cidade || '')} · ${(c.equipamentos || []).filter(e => !e.inativo).length} equipamento(s)</div></a>`).join('') || '<p class="muted center">Nenhum cliente cadastrado.</p>'}</div>`;
+  $('#busca').oninput = e => { const q = e.target.value.toLowerCase(); $$('#lista .item').forEach(i => i.hidden = !i.dataset.busca.includes(q)); };
+  const fab = document.createElement('a'); fab.className = 'btn fab'; fab.href = '#/cliente/novo'; fab.textContent = '+ Novo cliente'; document.body.appendChild(fab);
+}
+async function vCliente(id) {
+  const novo = id === 'novo'; const paraVisita = location.hash.includes('nova=1');
+  const c = novo ? {id: uid(), nome: '', cnpj: '', endereco: '', cidade: '', contato: '', whatsapp: '', equipamentos: []} : await DB.get('clientes', id);
+  if (!c) return location.hash = '#/clientes';
+  c.equipamentos = c.equipamentos || [];
+  setHeader(novo ? 'Novo cliente' : c.nome, paraVisita ? '#/nova' : '#/clientes'); setNav('clientes');
+  const hist = novo ? [] : (await DB.all('visitas')).filter(v => v.clienteId === c.id).sort((a, b) => b.checkin.ts - a.checkin.ts);
+  app.innerHTML = `<div class="card"><h2>Dados</h2>
+    <label>Nome do posto / razão social *</label><input data-c="nome" value="${esc(c.nome)}">
+    <label>CNPJ</label><input data-c="cnpj" value="${esc(c.cnpj)}" inputmode="numeric">
+    <label>Endereço</label><input data-c="endereco" value="${esc(c.endereco)}">
+    <label>Cidade / UF</label><input data-c="cidade" value="${esc(c.cidade)}">
+    <label>Contato (responsável)</label><input data-c="contato" value="${esc(c.contato)}">
+    <label>WhatsApp do contato</label><input data-c="whatsapp" value="${esc(c.whatsapp)}" inputmode="tel" placeholder="(41) 99999-9999">
+  </div>
+  <div class="card"><h2>Equipamentos</h2><div id="eqs"></div>
+    <div class="eqadd"><select id="eqTipo">${TIPOS_EQ.map(t => `<option>${t}</option>`).join('')}</select>
+      <input id="eqModelo" placeholder="Marca / modelo"><input id="eqSerie" placeholder="Nº de série"><input id="eqLocal" placeholder="Local (ex.: tanque 2)">
+      <button class="btn sec sm" id="eqAdd">+ Adicionar equipamento</button></div></div>
+  ${hist.length ? `<div class="card"><h2>Histórico de visitas</h2>${hist.map(v => `<a class="item" href="#/${v.status === 'aberta' ? 'visita' : 'relatorio'}/${v.id}"><div class="t">Nº ${pad(v.numero)} · ${fmtD(v.checkin.ts)}</div><div class="s">${esc(v.origem)} · ${esc(statusInfo(v.statusFinal)?.t || 'em andamento')}</div></a>`).join('')}</div>` : ''}
+  ${novo ? '' : `<button class="btn er full" id="inativar">${c.inativo ? 'Reativar cliente' : 'Inativar cliente'}</button>`}`;
+  const bar = document.createElement('div'); bar.className = 'bar';
+  bar.innerHTML = `<div class="in"><button class="btn" id="salvarC">${paraVisita ? 'Salvar e iniciar visita' : 'Salvar'}</button></div>`; document.body.appendChild(bar);
+
+  const renderEqs = () => {
+    $('#eqs').innerHTML = c.equipamentos.filter(e => !e.inativo).map(e => `<div class="chk"><span style="flex:1"><b>${esc(e.tipo)}</b> ${esc(e.modelo || '')}<br><span class="muted">${e.serie ? 'Série ' + esc(e.serie) : ''}${e.local ? ' · ' + esc(e.local) : ''}</span></span><button class="x" style="width:34px;height:34px" data-edel="${e.id}">×</button></div>`).join('') || '<p class="muted">Nenhum equipamento.</p>';
+    $$('#eqs [data-edel]').forEach(b => b.onclick = () => { if (confirm('Remover este equipamento?')) { c.equipamentos.find(e => e.id === b.dataset.edel).inativo = true; renderEqs(); } });
+  };
+  renderEqs();
+  $('#eqAdd').onclick = () => { c.equipamentos.push({id: uid(), tipo: $('#eqTipo').value, modelo: $('#eqModelo').value.trim(), serie: $('#eqSerie').value.trim(), local: $('#eqLocal').value.trim()}); $('#eqModelo').value = $('#eqSerie').value = $('#eqLocal').value = ''; renderEqs(); };
+  $('#salvarC').onclick = async () => {
+    $$('[data-c]').forEach(i => c[i.dataset.c] = i.value.trim());
+    if (!c.nome) return toast('Informe o nome do cliente');
+    await DB.put('clientes', c); toast('Cliente salvo ✓');
+    if (paraVisita) return criarVisita(c.id);
+    location.hash = '#/clientes';
+  };
+  if (!novo) $('#inativar').onclick = async () => { c.inativo = !c.inativo; await DB.put('clientes', c); location.hash = '#/clientes'; };
+}
+
+/* ================== Ajustes / backup ================== */
+async function vConfig() {
+  setHeader('Ajustes'); setNav('config');
+  const cfg = await getCfg();
+  app.innerHTML = `<div class="card"><h2>Sua empresa (cabeçalho do relatório)</h2>
+    <label>Nome da empresa</label><input data-k="empresa" value="${esc(cfg.empresa)}">
+    <label>CNPJ</label><input data-k="cnpj" value="${esc(cfg.cnpj)}">
+    <label>Técnico responsável</label><input data-k="tecnico" value="${esc(cfg.tecnico)}">
+    <label>Telefone</label><input data-k="telefone" value="${esc(cfg.telefone)}" inputmode="tel">
+    <label>E-mail</label><input data-k="email" value="${esc(cfg.email)}" inputmode="email">
+    <label>Logotipo</label>
+    <div class="row">${cfg.logo ? `<img src="${cfg.logo}" style="max-height:48px;max-width:120px;flex:none">` : ''}<input type="file" id="logo" accept="image/*"></div>
+    ${cfg.logo ? '<button class="btn sec sm" id="semLogo" style="margin-top:6px">Remover logo</button>' : ''}
+    <label>Próximo nº de OS</label><input type="number" data-k="proxOS" value="${esc(cfg.proxOS)}" min="1">
+  </div>
+  <div class="card"><h2>Mensagem do WhatsApp</h2>
+    <p class="muted" style="font-size:13px">Campos: {contato} {cliente} {numero} {data} {origem} {status} {pendencias} {tecnico} {empresa}</p>
+    <textarea data-k="msg" style="min-height:170px">${esc(cfg.msg)}</textarea>
+    <button class="btn sec sm" id="msgPadrao">Restaurar padrão</button>
+  </div>
+  <div class="card"><h2>Backup</h2>
+    <p class="muted">Os dados ficam só neste celular. Último backup: <b>${cfg.ultimoBackup ? fmtDT(cfg.ultimoBackup) : 'nunca'}</b>. Guarde o arquivo no Google Drive ou envie para você mesmo.</p>
+    <button class="btn full" id="exportar">⬇ Exportar backup</button>
+    <button class="btn sec full" id="importarBtn">⬆ Restaurar backup</button><input type="file" id="importar" accept=".json,application/json" hidden>
+  </div>
+  <p class="muted center" style="font-size:12px">B3 Visitas v1.0.0</p>`;
+  const salvar = () => saveCfg(cfg);
+  app.oninput = (e => { const k = e.target.dataset.k; if (!k) return; cfg[k] = k === 'proxOS' ? Math.max(1, parseInt(e.target.value) || 1) : e.target.value; agendarSalvar(salvar); });
+  $('#logo').onchange = async e => { const f = e.target.files[0]; if (!f) return; cfg.logo = await processarLogo(f); await salvar(); vConfig(); };
+  if (cfg.logo) $('#semLogo').onclick = async () => { cfg.logo = ''; await salvar(); vConfig(); };
+  $('#msgPadrao').onclick = async () => { cfg.msg = MSG_PADRAO; await salvar(); vConfig(); };
+  $('#exportar').onclick = async () => {
+    flushSalvar();
+    const dados = {app: 'b3visitas', versao: 1, exportadoEm: new Date().toISOString(), config: await getCfg(), clientes: await DB.all('clientes'), visitas: await DB.all('visitas')};
+    const blob = new Blob([JSON.stringify(dados)], {type: 'application/json'});
+    const nome = `backup-b3visitas-${new Date().toISOString().slice(0, 10)}.json`;
+    const file = new File([blob], nome, {type: 'application/json'});
+    let ok = false;
+    if (navigator.canShare && navigator.canShare({files: [file]})) { try { await navigator.share({files: [file], title: nome}); ok = true; } catch (e) { if (e.name === 'AbortError') return; } }
+    if (!ok) { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = nome; a.click(); }
+    const c2 = await getCfg(); c2.ultimoBackup = Date.now(); await saveCfg(c2); toast('Backup gerado ✓'); vConfig();
+  };
+  $('#importarBtn').onclick = () => $('#importar').click();
+  $('#importar').onchange = async e => {
+    const f = e.target.files[0]; if (!f) return;
+    try {
+      const dados = JSON.parse(await f.text());
+      if (dados.app !== 'b3visitas') throw new Error('arquivo não é um backup do B3 Visitas');
+      if (!confirm(`Restaurar backup de ${new Date(dados.exportadoEm).toLocaleString('pt-BR')}?\n${dados.clientes.length} clientes e ${dados.visitas.length} visitas.\n\nOs dados atuais deste celular serão SUBSTITUÍDOS.`)) return;
+      await DB.clear('clientes'); await DB.clear('visitas');
+      for (const c of dados.clientes) await DB.put('clientes', c);
+      for (const v of dados.visitas) await DB.put('visitas', v);
+      await saveCfg({...dados.config, k: 'cfg'}); toast('Backup restaurado ✓'); location.hash = '#/';
+    } catch (err) { toast('Erro ao restaurar: ' + err.message, 4000); }
+  };
+}
+
+/* ================== Início ================== */
+(async () => {
+  await DB.open();
+  if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
+  if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
+  route();
+})();
+</script>
+</body>
+</html>
