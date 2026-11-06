@@ -1,4 +1,4 @@
-# B3 Visitas – v1.0.2
+# B3 Visitas – v1.0.3
 
 App (PWA) para registrar visitas técnicas em concentradores e medidores de tanque e enviar o relatório em PDF ao cliente pelo WhatsApp. Funciona offline; os dados ficam no próprio celular (IndexedDB).
 
