@@ -58,6 +58,10 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--az);border-color
 .eqadd{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
 .eqadd .btn{grid-column:1/-1}
 .search{margin-bottom:10px}
+.tabs{display:flex;gap:6px;margin-bottom:10px}.tabs button{flex:1;font:inherit;font-size:14px;font-weight:600;padding:9px 6px;border-radius:9px;border:1px solid var(--bd);background:#fff;color:var(--mu)}
+.tabs button.on{background:var(--az);border-color:var(--az);color:#fff}
+.badge.pe{background:#fde8e6;color:var(--er)}
+.pend{font-size:13px;color:var(--er);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .fab{position:fixed;right:16px;bottom:80px;z-index:6;border-radius:30px;padding:14px 20px;box-shadow:0 4px 14px #0003}
 </style>
 </head>
@@ -125,7 +129,7 @@ function toast(msg, ms = 2600) { const t = document.createElement('div'); t.clas
 
 /* ================== Equipamentos (formulário compartilhado) ================== */
 const eqNome = e => [e.fabricante, e.modelo].filter(Boolean).join(' ');
-const eqDetalhe = e => [e.serie && 'Série ' + e.serie, e.ip && 'IP ' + e.ip, e.local].filter(Boolean).join(' · ');
+const eqDetalhe = e => [e.serie && 'Série ' + e.serie, e.versao && 'Versão ' + e.versao, e.ip && 'IP ' + e.ip, e.local].filter(Boolean).join(' · ');
 function ipValido(ip) {
   const m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(?::(\d{1,5}))?$/.exec(ip);
   return !!m && m.slice(1, 5).every(n => +n <= 255) && (!m[5] || +m[5] <= 65535);
@@ -137,8 +141,9 @@ function eqFormHTML(fabricantes) {
     <div><label>Fabricante</label><input id="eqFab" list="dlFab" placeholder="Ex.: Horustech"></div>
     <div><label>Modelo</label><input id="eqModelo" placeholder="Ex.: HRS"></div>
     <div><label>Nº de série</label><input id="eqSerie"></div>
+    <div><label>Versão (firmware)</label><input id="eqVersao" placeholder="Ex.: 3.2.1"></div>
     <div><label>Endereço IP</label><input id="eqIp" inputmode="decimal" placeholder="192.168.0.100"></div>
-    <div style="grid-column:1/-1"><label>Local</label><input id="eqLocal" placeholder="Ex.: Tanque 2 – Etanol"></div>
+    <div><label>Local</label><input id="eqLocal" placeholder="Ex.: Tanque 2"></div>
     <datalist id="dlFab">${fabricantes.map(f => `<option value="${esc(f)}">`).join('')}</datalist>
     <button class="btn sec sm" id="eqAdd">+ Adicionar equipamento</button>
     <button class="btn er sm" id="eqCancel" hidden>Cancelar edição</button></div>`;
@@ -149,7 +154,7 @@ async function listaFabricantes() {
 }
 // Liga o formulário: adicionar novo ou editar existente. onSalvo(equip, novo) é chamado depois.
 function ligarEqForm(c, onSalvo) {
-  const campos = {tipo: '#eqTipo', fabricante: '#eqFab', modelo: '#eqModelo', serie: '#eqSerie', ip: '#eqIp', local: '#eqLocal'};
+  const campos = {tipo: '#eqTipo', fabricante: '#eqFab', modelo: '#eqModelo', serie: '#eqSerie', versao: '#eqVersao', ip: '#eqIp', local: '#eqLocal'};
   let editId = null;
   const limpar = () => {
     editId = null; Object.entries(campos).forEach(([k, sel]) => { if (k !== 'tipo') $(sel).value = ''; });
@@ -277,22 +282,44 @@ async function vVisitas() {
   setHeader('Visitas'); setNav('visitas');
   const [vs, cs, cfg] = [await DB.all('visitas'), await DB.all('clientes'), await getCfg()];
   const cli = Object.fromEntries(cs.map(c => [c.id, c]));
-  vs.sort((a, b) => (a.status === 'aberta' ? 0 : 1) - (b.status === 'aberta' ? 0 : 1) || (b.checkin?.ts || 0) - (a.checkin?.ts || 0));
+  // Grupo: 'aberto' = em andamento ou finalizada sem resolver; 'concluido' = finalizada e resolvida
+  const grupo = v => v.status === 'finalizada' && v.statusFinal === 'resolvido' ? 'concluido' : 'aberto';
+  const ordem = v => v.status === 'aberta' ? 0 : 1;
+  vs.sort((a, b) => ordem(a) - ordem(b) || (b.checkin?.ts || 0) - (a.checkin?.ts || 0));
+  const nAb = vs.filter(v => grupo(v) === 'aberto').length, nCo = vs.length - nAb;
+  let filtro = sessionStorage.getItem('filtroVisitas') || 'aberto';
   let html = '';
   if (!cfg.empresa || !cfg.tecnico) html += `<div class="aviso">Preencha os dados da sua empresa em <a href="#/config">Ajustes</a> — eles aparecem no cabeçalho do relatório.</div>`;
   const dias = cfg.ultimoBackup ? (Date.now() - cfg.ultimoBackup) / 864e5 : 999;
   if (vs.length && dias > 7) html += `<div class="aviso">Último backup: ${cfg.ultimoBackup ? fmtD(cfg.ultimoBackup) : 'nunca'}. Os dados ficam só neste celular — <a href="#/config">faça um backup</a>.</div>`;
+  html += `<div class="tabs"><button data-g="aberto">Abertos e pendentes (${nAb})</button><button data-g="concluido">Concluídos (${nCo})</button></div>`;
   html += `<input class="search" id="busca" placeholder="Buscar por cliente ou nº…">`;
   html += `<div id="lista">${vs.map(v => {
     const c = cli[v.clienteId] || {nome:'(cliente removido)'};
-    const b = v.status === 'aberta' ? '<span class="badge ab">EM ANDAMENTO</span>' : v.enviadoEm ? '<span class="badge en">ENVIADO</span>' : '<span class="badge fi">FINALIZADA</span>';
+    let b;
+    if (v.status === 'aberta') b = '<span class="badge ab">EM ANDAMENTO</span>';
+    else if (v.statusFinal === 'pendente') b = '<span class="badge pe">NÃO RESOLVIDO</span>';
+    else if (v.statusFinal === 'parcial') b = '<span class="badge ab">PARCIAL</span>';
+    else b = '<span class="badge fi">CONCLUÍDO</span>';
     const dest = v.status === 'aberta' ? 'visita' : 'relatorio';
-    return `<a class="item" href="#/${dest}/${v.id}" data-busca="${esc((c.nome + ' ' + pad(v.numero)).toLowerCase())}">
+    const enviado = v.status !== 'aberta' ? (v.enviadoEm ? ' · ✓ enviado' : ' · não enviado') : '';
+    const pend = grupo(v) === 'aberto' && v.status !== 'aberta' && (v.pendencias || '').trim() ? `<div class="pend">Pendência: ${esc(v.pendencias.trim())}</div>` : '';
+    return `<a class="item" href="#/${dest}/${v.id}" data-g="${grupo(v)}" data-busca="${esc((c.nome + ' ' + pad(v.numero)).toLowerCase())}">
       <div class="row"><span class="t">Nº ${pad(v.numero)} · ${esc(c.nome)}</span><span style="flex:none">${b}</span></div>
-      <div class="s">${fmtDT(v.checkin?.ts)} · ${esc(v.origem || 'origem não informada')}</div></a>`;
-  }).join('') || '<p class="muted center">Nenhuma visita ainda.<br>Toque em <b>+ Nova visita</b> ao chegar no cliente.</p>'}</div>`;
+      <div class="s">${fmtDT(v.checkin?.ts)} · ${esc(v.origem || 'origem não informada')}${enviado}</div>${pend}</a>`;
+  }).join('')}<p class="muted center" id="vazio" hidden></p></div>`;
   app.innerHTML = html;
-  $('#busca').oninput = e => { const q = e.target.value.toLowerCase(); $$('#lista .item').forEach(i => i.hidden = !i.dataset.busca.includes(q)); };
+  const aplicar = () => {
+    const q = $('#busca').value.toLowerCase(); let n = 0;
+    $$('#lista .item').forEach(i => { i.hidden = i.dataset.g !== filtro || !i.dataset.busca.includes(q); if (!i.hidden) n++; });
+    $$('.tabs button').forEach(b => b.classList.toggle('on', b.dataset.g === filtro));
+    const vz = $('#vazio'); vz.hidden = n > 0;
+    vz.innerHTML = q ? 'Nada encontrado.' : !vs.length ? 'Nenhuma visita ainda.<br>Toque em <b>+ Nova visita</b> ao chegar no cliente.'
+      : filtro === 'aberto' ? 'Nenhum atendimento aberto ou pendente. ✓' : 'Nenhum atendimento concluído ainda.';
+  };
+  $$('.tabs button').forEach(b => b.onclick = () => { filtro = b.dataset.g; sessionStorage.setItem('filtroVisitas', filtro); aplicar(); });
+  $('#busca').oninput = aplicar;
+  aplicar();
   const fab = document.createElement('a'); fab.className = 'btn fab'; fab.href = '#/nova'; fab.textContent = '+ Nova visita'; document.body.appendChild(fab);
 }
 
@@ -600,12 +627,12 @@ function gerarPDF(v, c, cfg) {
   const eqs = (c.equipamentos || []).filter(e => v.equipamentos.includes(e.id));
   if (eqs.length) {
     secao('Equipamentos atendidos');
-    const cols = [['EQUIPAMENTO', 48], ['FABRICANTE', 32], ['MODELO', 34], ['Nº DE SÉRIE', 34], ['ENDEREÇO IP', 34]];
+    const cols = [['EQUIPAMENTO', 42], ['FABRICANTE', 28], ['MODELO', 28], ['Nº DE SÉRIE', 30], ['VERSÃO', 22], ['ENDEREÇO IP', 32]];
     const xs = []; cols.reduce((x, [, w]) => (xs.push(x), x + w), M);
     y += 2; font(7.5, 'bold', CINZA); cols.forEach(([t], i) => d.text(t, xs[i] + 1, y));
     y += 1.8; d.setDrawColor(210); d.setLineWidth(0.2); d.line(M, y, M + CW, y);
     eqs.forEach(e => {
-      const cel = [[e.tipo, e.local].filter(Boolean).join('\n'), e.fabricante, e.modelo, e.serie, e.ip].map((t, i) => { font(9); return d.splitTextToSize(t || '—', cols[i][1] - 2); });
+      const cel = [[e.tipo, e.local].filter(Boolean).join('\n'), e.fabricante, e.modelo, e.serie, e.versao, e.ip].map((t, i) => { font(9); return d.splitTextToSize(t || '—', cols[i][1] - 2); });
       const h = Math.max(...cel.map(l => l.length)) * 4.2 + 2.6; need(h);
       cel.forEach((ls, i) => ls.forEach((l, j) => { font(9, i === 0 && j === 0 ? 'bold' : 'normal', i === 0 && j > 0 ? CINZA : TX); d.text(l, xs[i] + 1, y + 4.4 + j * 4.2); }));
       y += h; d.line(M, y, M + CW, y);
@@ -755,7 +782,7 @@ async function vConfig() {
     <button class="btn full" id="exportar">⬇ Exportar backup</button>
     <button class="btn sec full" id="importarBtn">⬆ Restaurar backup</button><input type="file" id="importar" accept=".json,application/json" hidden>
   </div>
-  <p class="muted center" style="font-size:12px">B3 Visitas v1.0.2</p>`;
+  <p class="muted center" style="font-size:12px">B3 Visitas v1.0.3</p>`;
   const salvar = () => saveCfg(cfg);
   app.oninput = (e => { const k = e.target.dataset.k; if (!k) return; cfg[k] = k === 'proxOS' ? Math.max(1, parseInt(e.target.value) || 1) : e.target.value; agendarSalvar(salvar); });
   $('#logo').onchange = async e => { const f = e.target.files[0]; if (!f) return; cfg.logo = await processarLogo(f); await salvar(); vConfig(); };

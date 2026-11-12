@@ -1,5 +1,5 @@
 // B3 Visitas – service worker (offline)
-const CACHE = 'b3visitas-v1.0.2';
+const CACHE = 'b3visitas-v1.0.3';
 const ASSETS = ['./', './index.html', './jspdf.umd.min.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS))); self.skipWaiting(); });
 self.addEventListener('activate', e => {
