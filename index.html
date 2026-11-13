@@ -590,7 +590,8 @@ function gerarPDF(v, c, cfg) {
 
   // Cabeçalho
   let xTxt = M;
-  if (cfg.logo) { try { const p = d.getImageProperties(cfg.logo); const h = 18, w = Math.min(45, p.width * h / p.height); d.addImage(cfg.logo, 'PNG', M, y, w, h, 'logo', 'FAST'); xTxt = M + w + 4; } catch {} }
+  const logo = cfg.logo || LOGO_PADRAO;
+  if (logo) { try { const p = d.getImageProperties(logo); const h = 18, w = Math.min(45, p.width * h / p.height); d.addImage(logo, 'PNG', M, y, w, h, 'logo', 'FAST'); xTxt = M + w + 4; } catch {} }
   font(13, 'bold'); d.text(cfg.empresa || 'Relatório técnico', xTxt, y + 5);
   font(8.5, 'normal', CINZA);
   const linhasEmp = [cfg.cnpj && 'CNPJ ' + fmtCNPJ(cfg.cnpj), [cfg.telefone, cfg.email].filter(Boolean).join(' · '), cfg.tecnico && 'Técnico: ' + cfg.tecnico].filter(Boolean);
@@ -768,8 +769,9 @@ async function vConfig() {
     <label>Telefone</label><input data-k="telefone" value="${esc(cfg.telefone)}" inputmode="tel">
     <label>E-mail</label><input data-k="email" value="${esc(cfg.email)}" inputmode="email">
     <label>Logotipo</label>
-    <div class="row">${cfg.logo ? `<img src="${cfg.logo}" style="max-height:48px;max-width:120px;flex:none">` : ''}<input type="file" id="logo" accept="image/*"></div>
-    ${cfg.logo ? '<button class="btn sec sm" id="semLogo" style="margin-top:6px">Remover logo</button>' : ''}
+    <div class="row"><img src="${cfg.logo || 'logo.png'}" style="max-height:48px;max-width:120px;flex:none"><input type="file" id="logo" accept="image/*"></div>
+    <p class="muted" style="font-size:13px;margin:4px 0 0">${cfg.logo ? 'Usando logo personalizado.' : 'Usando o logo padrão B3 Sistemas.'}</p>
+    ${cfg.logo ? '<button class="btn sec sm" id="semLogo" style="margin-top:6px">Voltar ao logo padrão B3</button>' : ''}
     <label>Próximo nº de OS</label><input type="number" data-k="proxOS" value="${esc(cfg.proxOS)}" min="1">
   </div>
   <div class="card"><h2>Mensagem do WhatsApp</h2>
@@ -782,7 +784,7 @@ async function vConfig() {
     <button class="btn full" id="exportar">⬇ Exportar backup</button>
     <button class="btn sec full" id="importarBtn">⬆ Restaurar backup</button><input type="file" id="importar" accept=".json,application/json" hidden>
   </div>
-  <p class="muted center" style="font-size:12px">B3 Visitas v1.0.3</p>`;
+  <p class="muted center" style="font-size:12px">B3 Visitas v1.0.4</p>`;
   const salvar = () => saveCfg(cfg);
   app.oninput = (e => { const k = e.target.dataset.k; if (!k) return; cfg[k] = k === 'proxOS' ? Math.max(1, parseInt(e.target.value) || 1) : e.target.value; agendarSalvar(salvar); });
   $('#logo').onchange = async e => { const f = e.target.files[0]; if (!f) return; cfg.logo = await processarLogo(f); await salvar(); vConfig(); };
@@ -815,8 +817,16 @@ async function vConfig() {
 }
 
 /* ================== Início ================== */
+let LOGO_PADRAO = '';
+async function carregarLogoPadrao() {
+  try {
+    const b = await (await fetch('logo.png')).blob();
+    LOGO_PADRAO = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.readAsDataURL(b); });
+  } catch { LOGO_PADRAO = ''; }
+}
 (async () => {
   await DB.open();
+  await carregarLogoPadrao();
   if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) navigator.serviceWorker.register('sw.js').catch(() => {});
   route();

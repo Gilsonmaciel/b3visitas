@@ -1,4 +1,4 @@
-# B3 Visitas – v1.0.3
+# B3 Visitas – v1.0.4
 
 App (PWA) para registrar visitas técnicas em concentradores e medidores de tanque e enviar o relatório em PDF ao cliente pelo WhatsApp. Funciona offline; os dados ficam no próprio celular (IndexedDB).
 
@@ -7,6 +7,7 @@ App (PWA) para registrar visitas técnicas em concentradores e medidores de tanq
 - `jspdf.umd.min.js` – gerador de PDF (local, sem depender de internet)
 - `sw.js` – service worker (funcionamento offline)
 - `manifest.webmanifest`, `icon-192.png`, `icon-512.png` – instalação na tela inicial
+- `logo.png` – logo padrão B3 Sistemas (cabeçalho do PDF)
 
 ## Publicar (precisa de HTTPS para GPS, câmera e instalação)
 Opção recomendada – GitHub Pages (grátis):
