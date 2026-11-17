@@ -57,6 +57,8 @@ input:focus,select:focus,textarea:focus{outline:2px solid var(--az);border-color
 .kv{display:grid;grid-template-columns:110px 1fr;gap:4px 10px;font-size:14px}.kv b{color:var(--mu);font-weight:600}
 .eqadd{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:10px}
 .eqadd .btn{grid-column:1/-1}
+.eqmed>div,.eqadd>div:not(.eqmed){display:flex;flex-direction:column;justify-content:flex-end}
+.eqmed{grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:0 8px;background:var(--az2);border-radius:10px;padding:10px 10px 12px;margin-top:8px}
 .search{margin-bottom:10px}
 .tabs{display:flex;gap:6px;margin-bottom:10px}.tabs button{flex:1;font:inherit;font-size:14px;font-weight:600;padding:9px 6px;border-radius:9px;border:1px solid var(--bd);background:#fff;color:var(--mu)}
 .tabs button.on{background:var(--az);border-color:var(--az);color:#fff}
@@ -129,7 +131,21 @@ function toast(msg, ms = 2600) { const t = document.createElement('div'); t.clas
 
 /* ================== Equipamentos (formulário compartilhado) ================== */
 const eqNome = e => [e.fabricante, e.modelo].filter(Boolean).join(' ');
-const eqDetalhe = e => [e.serie && 'Série ' + e.serie, e.versao && 'Versão ' + e.versao, e.ip && 'IP ' + e.ip, e.local].filter(Boolean).join(' · ');
+/* Dados extras – só para "Medidor de tanque (console)" */
+const TIPO_MEDIDOR = 'Medidor de tanque (console)';
+const CAMPOS_MEDIDOR = ['automacao', 'identFrentistas', 'sondas', 'qtdSondas', 'sensores', 'qtdSensores'];
+const simNao = v => v === 'sim' ? 'Sim' : v === 'nao' ? 'Não' : '';
+function medidorResumo(e) {
+  if (e.tipo !== TIPO_MEDIDOR) return '';
+  const qtd = (v, n) => v === 'sim' ? 'Sim' + (n !== '' && n != null ? ` (${n})` : '') : simNao(v);
+  return [
+    e.automacao && 'Automação: ' + simNao(e.automacao),
+    e.identFrentistas && 'Identificador de frentistas: ' + simNao(e.identFrentistas),
+    e.sondas && 'Sondas: ' + qtd(e.sondas, e.qtdSondas),
+    e.sensores && 'Sensores: ' + qtd(e.sensores, e.qtdSensores),
+  ].filter(Boolean).join(' · ');
+}
+const eqDetalhe = e => [e.serie && 'Série ' + e.serie, e.versao && 'Versão ' + e.versao, e.ip && 'IP ' + e.ip, e.local, medidorResumo(e)].filter(Boolean).join(' · ');
 function ipValido(ip) {
   const m = /^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})(?::(\d{1,5}))?$/.exec(ip);
   return !!m && m.slice(1, 5).every(n => +n <= 255) && (!m[5] || +m[5] <= 65535);
@@ -144,6 +160,15 @@ function eqFormHTML(fabricantes) {
     <div><label>Versão (firmware)</label><input id="eqVersao" placeholder="Ex.: 3.2.1"></div>
     <div><label>Endereço IP</label><input id="eqIp" inputmode="decimal" placeholder="192.168.0.100"></div>
     <div><label>Local</label><input id="eqLocal" placeholder="Ex.: Tanque 2"></div>
+    <div id="eqMedidor" class="eqmed" hidden>
+      <b style="grid-column:1/-1">Dados do medidor de tanque</b>
+      <div><label>Usa automação?</label><select id="eqAutomacao"><option value="">—</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>
+      <div><label>Ident. de frentistas?</label><select id="eqIdent"><option value="">—</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>
+      <div><label>Possui sondas?</label><select id="eqSondas"><option value="">—</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>
+      <div id="boxQtdSondas" hidden><label>Qtd. de sondas</label><input id="eqQtdSondas" type="number" inputmode="numeric" min="0" max="99" step="1"></div>
+      <div><label>Possui sensores?</label><select id="eqSensores"><option value="">—</option><option value="sim">Sim</option><option value="nao">Não</option></select></div>
+      <div id="boxQtdSensores" hidden><label>Qtd. de sensores</label><input id="eqQtdSensores" type="number" inputmode="numeric" min="0" max="99" step="1"></div>
+    </div>
     <datalist id="dlFab">${fabricantes.map(f => `<option value="${esc(f)}">`).join('')}</datalist>
     <button class="btn sec sm" id="eqAdd">+ Adicionar equipamento</button>
     <button class="btn er sm" id="eqCancel" hidden>Cancelar edição</button></div>`;
@@ -154,10 +179,18 @@ async function listaFabricantes() {
 }
 // Liga o formulário: adicionar novo ou editar existente. onSalvo(equip, novo) é chamado depois.
 function ligarEqForm(c, onSalvo) {
-  const campos = {tipo: '#eqTipo', fabricante: '#eqFab', modelo: '#eqModelo', serie: '#eqSerie', versao: '#eqVersao', ip: '#eqIp', local: '#eqLocal'};
+  const campos = {tipo: '#eqTipo', fabricante: '#eqFab', modelo: '#eqModelo', serie: '#eqSerie', versao: '#eqVersao', ip: '#eqIp', local: '#eqLocal',
+    automacao: '#eqAutomacao', identFrentistas: '#eqIdent', sondas: '#eqSondas', qtdSondas: '#eqQtdSondas', sensores: '#eqSensores', qtdSensores: '#eqQtdSensores'};
   let editId = null;
+  // Mostra os campos extras só para medidor de tanque; quantidades só quando "Sim"
+  const atualizarMedidor = () => {
+    $('#eqMedidor').hidden = $('#eqTipo').value !== TIPO_MEDIDOR;
+    $('#boxQtdSondas').hidden = $('#eqSondas').value !== 'sim';
+    $('#boxQtdSensores').hidden = $('#eqSensores').value !== 'sim';
+  };
+  ['#eqTipo', '#eqSondas', '#eqSensores'].forEach(sel => $(sel).onchange = atualizarMedidor);
   const limpar = () => {
-    editId = null; Object.entries(campos).forEach(([k, sel]) => { if (k !== 'tipo') $(sel).value = ''; });
+    editId = null; Object.entries(campos).forEach(([k, sel]) => { if (k !== 'tipo') $(sel).value = ''; }); atualizarMedidor();
     $('#eqTitulo').textContent = 'Novo equipamento'; $('#eqAdd').textContent = '+ Adicionar equipamento'; $('#eqCancel').hidden = true;
   };
   $('#eqIp').oninput = e => { e.target.value = e.target.value.replace(/,/g, '.').replace(/[^0-9.:]/g, ''); };
@@ -166,15 +199,24 @@ function ligarEqForm(c, onSalvo) {
     const dados = Object.fromEntries(Object.entries(campos).map(([k, sel]) => [k, $(sel).value.trim()]));
     if (!dados.fabricante && !dados.modelo && !dados.serie) return toast('Informe ao menos fabricante, modelo ou nº de série');
     if (dados.ip && !ipValido(dados.ip)) return toast('Endereço IP inválido. Use o formato 192.168.0.100 (porta opcional :4001)', 3500);
+    if (dados.tipo !== TIPO_MEDIDOR) CAMPOS_MEDIDOR.forEach(k => dados[k] = '');
+    if (dados.sondas !== 'sim') dados.qtdSondas = '';
+    if (dados.sensores !== 'sim') dados.qtdSensores = '';
+    for (const k of ['qtdSondas', 'qtdSensores']) {
+      if (dados[k] !== '' && !/^\d{1,2}$/.test(dados[k])) return toast('Quantidade de sondas/sensores deve ser um número de 0 a 99');
+    }
     let e, novo = !editId;
     if (editId) { e = c.equipamentos.find(x => x.id === editId); Object.assign(e, dados); }
     else { e = {id: uid(), ...dados}; c.equipamentos.push(e); }
     limpar(); await onSalvo(e, novo);
   };
+  atualizarMedidor();
   return function editar(id) {
     const e = c.equipamentos.find(x => x.id === id); if (!e) return;
     editId = id;
-    Object.entries(campos).forEach(([k, sel]) => { $(sel).value = e[k] || ''; });
+    Object.entries(campos).forEach(([k, sel]) => { $(sel).value = e[k] ?? ''; });
+    if (!$('#eqTipo').value) $('#eqTipo').value = TIPOS_EQ[0];
+    atualizarMedidor();
     $('#eqTitulo').textContent = 'Editando equipamento'; $('#eqAdd').textContent = 'Salvar alterações'; $('#eqCancel').hidden = false;
     const det = $('#eqForm').closest('details'); if (det) det.open = true;
     $('#eqForm').scrollIntoView({behavior: 'smooth', block: 'center'});
@@ -634,8 +676,10 @@ function gerarPDF(v, c, cfg) {
     y += 1.8; d.setDrawColor(210); d.setLineWidth(0.2); d.line(M, y, M + CW, y);
     eqs.forEach(e => {
       const cel = [[e.tipo, e.local].filter(Boolean).join('\n'), e.fabricante, e.modelo, e.serie, e.versao, e.ip].map((t, i) => { font(9); return d.splitTextToSize(t || '—', cols[i][1] - 2); });
-      const h = Math.max(...cel.map(l => l.length)) * 4.2 + 2.6; need(h);
+      font(8.5); const extra = medidorResumo(e) ? d.splitTextToSize(medidorResumo(e), CW - 4) : [];
+      const h0 = Math.max(...cel.map(l => l.length)) * 4.2 + 2.6, h = h0 + extra.length * 3.9 + (extra.length ? 1.2 : 0); need(h);
       cel.forEach((ls, i) => ls.forEach((l, j) => { font(9, i === 0 && j === 0 ? 'bold' : 'normal', i === 0 && j > 0 ? CINZA : TX); d.text(l, xs[i] + 1, y + 4.4 + j * 4.2); }));
+      extra.forEach((l, j) => { font(8.5, 'normal', AZ); d.text(l, M + 1, y + h0 + 1 + j * 3.9); });
       y += h; d.line(M, y, M + CW, y);
     });
     y += 4;
@@ -784,7 +828,7 @@ async function vConfig() {
     <button class="btn full" id="exportar">⬇ Exportar backup</button>
     <button class="btn sec full" id="importarBtn">⬆ Restaurar backup</button><input type="file" id="importar" accept=".json,application/json" hidden>
   </div>
-  <p class="muted center" style="font-size:12px">B3 Visitas v1.0.4</p>`;
+  <p class="muted center" style="font-size:12px">B3 Visitas v1.0.5</p>`;
   const salvar = () => saveCfg(cfg);
   app.oninput = (e => { const k = e.target.dataset.k; if (!k) return; cfg[k] = k === 'proxOS' ? Math.max(1, parseInt(e.target.value) || 1) : e.target.value; agendarSalvar(salvar); });
   $('#logo').onchange = async e => { const f = e.target.files[0]; if (!f) return; cfg.logo = await processarLogo(f); await salvar(); vConfig(); };
